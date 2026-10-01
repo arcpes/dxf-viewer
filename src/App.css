@@ -1,0 +1,168 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #151a23;
+  border-bottom: 1px solid #262d3a;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-right: 8px;
+  color: #e8ecf3;
+}
+
+.btn {
+  background: #222a38;
+  color: #dbe2ee;
+  border: 1px solid #323b4c;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  background: #2b3547;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.btn.primary:hover {
+  background: #1d4fd8;
+}
+
+.btn.active {
+  background: #ff7849;
+  border-color: #ff7849;
+  color: #16120e;
+  font-weight: 600;
+}
+
+.btn.active.snap {
+  background: #34d399;
+  border-color: #34d399;
+}
+
+.divider {
+  width: 1px;
+  align-self: stretch;
+  background: #262d3a;
+  margin: 0 4px;
+}
+
+.readout {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 220px;
+}
+
+.readout-main {
+  color: #ff9a73;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout-sub {
+  color: #93a0b4;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-name {
+  margin-left: auto;
+  color: #93a0b4;
+  font-size: 13px;
+}
+
+.banner {
+  padding: 6px 14px;
+  background: #1c2433;
+  color: #c7d2e4;
+  font-size: 13px;
+  border-bottom: 1px solid #262d3a;
+}
+
+.banner.error {
+  background: #3a1a1e;
+  color: #ffb4b4;
+}
+
+.banner.info {
+  background: #142c42;
+  color: #9ed2ff;
+}
+
+.viewer-area {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.viewer-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* dxf-viewer forces inline position:relative on its container,
+   so size it explicitly instead of with absolute insets */
+.viewer-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.measure-label {
+  position: absolute;
+  transform: translate(-50%, -140%);
+  background: rgba(21, 26, 35, 0.92);
+  color: #ff9a73;
+  border: 1px solid #ff7849;
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #93a0b4;
+  pointer-events: none;
+  gap: 4px;
+}
+
+.placeholder p {
+  margin: 0;
+  font-size: 18px;
+}
+
+.placeholder .placeholder-sub {
+  font-size: 13px;
+  color: #5d6b82;
+}
