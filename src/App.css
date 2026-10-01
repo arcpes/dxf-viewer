@@ -62,6 +62,29 @@
   border-color: #34d399;
 }
 
+.flatten-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #93a0b4;
+  font-size: 13px;
+}
+
+.select {
+  background: #222a38;
+  color: #dbe2ee;
+  border: 1px solid #323b4c;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.select:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .divider {
   width: 1px;
   align-self: stretch;

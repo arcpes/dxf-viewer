@@ -175,6 +175,65 @@ if (!m3) {
   )
 }
 
+/* ---- Part 4: flatten-axis selection ------------------------------------- */
+/* Front view: (x,y,z) -> (x,z). The 3D file spans z -3..12, so bounds must
+   change accordingly after reprojection. */
+await page.locator("select.flatten").selectOption("front")
+await page.waitForFunction(
+  () => {
+    const b = window.__dxfViewer?.GetBounds()
+    return b && b.minY < -2.9 && b.maxY > 11.9
+  },
+  null,
+  { timeout: 20000 },
+)
+await page.waitForTimeout(400)
+
+const bannerText = await page.locator(".banner.info").textContent()
+if (!/Front view/.test(bannerText)) fail(`banner does not mention Front view: "${bannerText}"`)
+
+/* Staircase polyline segment (14,2,0)->(18,2,4) projects to (14,0)->(18,4):
+   length sqrt(32) = 5.6569. */
+const f1 = await modelToPage(14, 0)
+const f2 = await modelToPage(18, 4)
+await page.mouse.click(f1.x + 6, f1.y - 5)
+await page.waitForTimeout(120)
+await page.mouse.click(f2.x - 6, f2.y + 5)
+await page.waitForTimeout(250)
+
+const m4 = await page.evaluate(() => {
+  const list = window.__measurements ?? []
+  const last = list[list.length - 1]
+  const o = window.__dxfViewer.GetOrigin()
+  return last ? { ...last, origin: { x: o.x, y: o.y } } : null
+})
+await page.screenshot({ path: "/tmp/e2e_6_front.png" })
+const SQRT32 = Math.sqrt(32)
+if (!m4) {
+  fail("no measurement in front view")
+} else if (Math.abs(m4.distance - SQRT32) > 1e-3) {
+  fail(`front-view segment measured ${m4.distance}, expected ${SQRT32.toFixed(4)}`)
+} else {
+  const eps = 1e-4
+  const aOk =
+    Math.abs(m4.a.x - (14 - m4.origin.x)) < eps &&
+    Math.abs(m4.a.y - (0 - m4.origin.y)) < eps
+  if (!aOk) fail(`front-view snap off: ${JSON.stringify(m4.a)}`)
+  else console.log(`front flatten ok: staircase segment measured ${m4.distance.toFixed(4)} (= sqrt 32)`)
+}
+
+/* Side view: (x,y,z) -> (y,z). */
+await page.locator("select.flatten").selectOption("side")
+await page.waitForFunction(
+  () => {
+    const b = window.__dxfViewer?.GetBounds()
+    return b && b.minY < -2.9 && b.maxX > 15 && b.maxY > 11.9
+  },
+  null,
+  { timeout: 20000 },
+)
+console.log("side flatten ok: bounds reprojected to (y, z)")
+
 if (errors.length) fail("page errors: " + JSON.stringify(errors))
 else console.log("page errors: none")
 

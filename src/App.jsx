@@ -1,6 +1,13 @@
 import { useRef, useState } from "react"
 import DxfViewerPanel, { formatDistance } from "./DxfViewerPanel"
+import { flattenDxf } from "./flatten"
 import "./App.css"
+
+const AXIS_LABELS = {
+  top: "Top view (XY plane — Z ignored)",
+  front: "Front view (XZ plane — Y ignored)",
+  side: "Side view (YZ plane — X ignored)",
+}
 
 const INSUNITS_LABELS = {
   0: "units",
@@ -23,27 +30,52 @@ export default function App() {
   const [status, setStatus] = useState({ state: "empty" })
   const [units, setUnits] = useState("units")
   const [is3D, setIs3D] = useState(false)
+  const [axis, setAxis] = useState("top")
+  const originalTextRef = useRef(null)
   const [measureMode, setMeasureMode] = useState(false)
   const [snapEnabled, setSnapEnabled] = useState(true)
   const [measurements, setMeasurements] = useState([])
   const [pendingPick, setPendingPick] = useState(false)
 
+  const loadText = async (text, axisSel) => {
+    const url = URL.createObjectURL(
+      new Blob([flattenDxf(text, axisSel)], { type: "application/dxf" }),
+    )
+    try {
+      return await panelRef.current.loadUrl(url)
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  }
+
   const openFile = async (event) => {
     const file = event.target.files?.[0]
     event.target.value = "" // allow re-selecting the same file
     if (!file) return
-    const url = URL.createObjectURL(file)
     setFileName(file.name)
     setStatus({ state: "loading" })
+    setAxis("top")
     try {
-      const info = await panelRef.current.loadUrl(url)
+      const text = await file.text()
+      originalTextRef.current = text
+      const info = await loadText(text, "top")
       setUnits(INSUNITS_LABELS[info.insunits] ?? "units")
       setIs3D(info.is3D)
       setStatus({ state: "ready" })
     } catch (err) {
       setStatus({ state: "error", message: String(err?.message ?? err) })
-    } finally {
-      URL.revokeObjectURL(url)
+    }
+  }
+
+  const changeAxis = async (axisSel) => {
+    setAxis(axisSel)
+    if (!originalTextRef.current) return
+    setStatus({ state: "loading" })
+    try {
+      await loadText(originalTextRef.current, axisSel)
+      setStatus({ state: "ready" })
+    } catch (err) {
+      setStatus({ state: "error", message: String(err?.message ?? err) })
     }
   }
 
@@ -102,6 +134,21 @@ export default function App() {
           Fit view
         </button>
 
+        <label className="flatten-label">
+          Flatten
+          <select
+            className="select flatten"
+            value={axis}
+            disabled={!loaded || !is3D}
+            title="Choose which axis to ignore when projecting a 3D drawing"
+            onChange={(e) => changeAxis(e.target.value)}
+          >
+            <option value="top">Top — XY (ignore Z)</option>
+            <option value="front">Front — XZ (ignore Y)</option>
+            <option value="side">Side — YZ (ignore X)</option>
+          </select>
+        </label>
+
         <div className="divider" />
 
         <div className="readout">
@@ -137,8 +184,8 @@ export default function App() {
       )}
       {status.state === "ready" && is3D && (
         <div className="banner info">
-          3D coordinates detected — the drawing is flattened to a 2D top view
-          (Z axis ignored); measurements are XY-plane distances.
+          3D coordinates detected — flattened to {AXIS_LABELS[axis]};
+          measurements are distances in the projection plane.
         </div>
       )}
 

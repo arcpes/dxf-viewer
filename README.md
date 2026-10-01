@@ -13,8 +13,11 @@ React app for previewing DXF files in the browser, built on
   within 12 px: endpoints/vertices take priority (green indicator), then the
   nearest point on a line (cyan indicator)
 - **3D files are flattened** — drawings with Z coordinates render as a 2D
-  top view (XY projection, Z ignored); a banner says so, and measurements
-  report XY-plane distances
+  projection; a banner says so, and measurements report distances in the
+  projection plane
+- **Flatten axis selector** — for 3D files, choose which axis to ignore:
+  Top — XY (ignore Z, default), Front — XZ (ignore Y), or Side — YZ
+  (ignore X); switching reprojects and reloads the drawing
 - **Clear** — remove all measurements
 - **Fit view** — zoom to the drawing extents
 - TEXT entities render using the bundled Roboto font
@@ -53,9 +56,16 @@ otherwise).
 - Measurement markers use `sizeAttenuation: false` so they keep a constant
   screen size at any zoom; overlay objects disable depth testing to stay on
   top of the drawing.
-- Flattening is inherent to dxf-viewer: it builds 2-component (XY) geometry
-  buffers, so Z never reaches the GPU — and the measure/snap tools read those
-  same buffers, so distances are XY projections by construction.
+- Top-view flattening is inherent to dxf-viewer: it builds 2-component (XY)
+  geometry buffers, so Z never reaches the GPU — and the measure/snap tools
+  read those same buffers, so distances are XY projections by construction.
+- Front/Side views (`src/flatten.js`) remap coordinate group codes in the
+  DXF text before the viewer parses it (1N = x, 2N = y, 3N = z point
+  triples; LWPOLYLINE elevation 38 supplies z for its 2D vertices; z,
+  elevation, thickness and extrusion tags are dropped). Straight geometry
+  projects exactly; circles/arcs/text are repositioned by their anchor but
+  keep their shape instead of becoming ellipses. The original file text is
+  kept in memory so axis switches re-project losslessly from the source.
   `src/detect3d.js` just detects nonzero Z/elevation in the parsed document
   to surface the "flattened" banner (`extrusionDirection` excluded — a
   negative Z there is a mirrored 2D entity, not 3D content). Limitations
